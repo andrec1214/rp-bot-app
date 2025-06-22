@@ -1,6 +1,8 @@
 from db import db
 import datetime
 
+# USERS have CHARACTERS which have SESSIONS which have MSSSAGES
+
 # User table
 class User(db.Model):
     __tablename__ = "users"
@@ -15,7 +17,7 @@ class User(db.Model):
 class Character(db.Model):
     __tablename__ = "characters" # not much to document here, names are pretty self-explanatory.
 
-    ''' this is meant to just be a barebones table for characters. if you just want to give a personlity and chat, you can.
+    ''' this is meant to just be a barebones table for characters. if you just want to give a personality and chat, you can.
     otherwise, you can flesh the story and world out.
     '''
 
@@ -38,7 +40,7 @@ class Session(db.Model):
     __tablename__ = "sessions"
 
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(256)) # optional title for a session, can implement into memory system later
+    title = db.Column(db.String(256)) # optional title for a session, can implement into a session-specific save system later
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     character_id = db.Column(db.Integer, db.ForeignKey("characters.id"), nullable=False)
@@ -56,4 +58,3 @@ class Message(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     session_id = db.Column(db.Integer, db.ForeignKey("sessions.id"), nullable=False)
-
