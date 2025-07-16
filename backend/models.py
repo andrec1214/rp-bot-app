@@ -1,5 +1,5 @@
 from db import db
-import datetime
+from datetime import datetime, timezone
 
 # USERS have CHARACTERS which have SESSIONS which have MESSAGES
 
@@ -9,7 +9,7 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False) # username lol
-    date = db.Column(db.DateTime, default=datetime.utcnow)
+    date = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     characters = db.relationship("Character", backref="user", lazy=True)
 
@@ -28,7 +28,7 @@ class Character(db.Model):
     world_info = db.Column(db.Text)
     goals = db.Column(db.Text)
     relationships = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
 
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
@@ -41,7 +41,7 @@ class Session(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(256)) # optional title for a session, can implement into a session-specific save system later
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     character_id = db.Column(db.Integer, db.ForeignKey("characters.id"), nullable=False)
     messages = db.relationship("Message", backref="session", lazy=True)
@@ -55,6 +55,6 @@ class Message(db.Model):
     sender = db.Column(db.String(128), nullable=False) # can have user or character, helps for summaries
     is_summary = db.Column(db.Boolean, default=False) # message IS a summary, distinction between below
     summarized = db.Column(db.Boolean, default=False) # message was summarized
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     session_id = db.Column(db.Integer, db.ForeignKey("sessions.id"), nullable=False)

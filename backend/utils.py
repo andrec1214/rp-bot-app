@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 key = os.getenv("ANTHROPIC_API_KEY") # lol not my wallet
-claude = Anthropic(key)
+claude = Anthropic(api_key=key)
 
 # This is just the abstraction layer. The system prompt will be built by the build_system_prompt function below, and messages
 # will be constructed dynamically using lists so I can create a conext window at the same time.
@@ -19,6 +19,7 @@ def prompt_claude(messages, system_prompt):
             system = system_prompt
         )
     except Exception as err:
+        print(f"API Error: {err}")
         return "There was an error generating a response. Please try again." # api-side error handling
 
     return response.content[0].text.strip()
