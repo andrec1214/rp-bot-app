@@ -1,12 +1,10 @@
-from anthropic import Anthropic
 from db import db
-from models import User, Character, Session, Message
-import os
-from dotenv import load_dotenv
+from models import User, Character, Message
+from anthropic import Anthropic
 
-load_dotenv()
-key = os.getenv("ANTHROPIC_API_KEY") # lol not my wallet
-claude = Anthropic(api_key=key)
+def init_claude(key):
+    global claude
+    claude = Anthropic(api_key=key)
 
 # This is just the abstraction layer. The system prompt will be built by the build_system_prompt function below, and messages
 # will be constructed dynamically using lists so I can create a conext window at the same time.
