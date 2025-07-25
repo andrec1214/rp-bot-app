@@ -121,6 +121,7 @@ def setup():
                         ans = int(input().strip())
                     except:
                         print("Invalid input, please try again.")
+                        continue
 
                     if ans == 0:
                         print("\nHere is a list of characters you have previously interacted with: ")
@@ -131,7 +132,7 @@ def setup():
 
                     elif ans == 1:
                         char = create_character(user)
-                        title = input(f"You may enter a title for your session with {char.name}. This is purely optional.\n").strip()
+                        title = input(f"You may enter a title for your session with {char.name}. This is purely optional. Enter here: ").strip()
                         sesh = Session(character_id=char.id, title=title if title else None)
                         db.session.add(sesh)
                         db.session.commit()
@@ -144,7 +145,7 @@ def setup():
             else:
                 print("Let's create your first character!")
                 char = create_character(user)
-                title = input(f"You may enter a title for your session with {char.name}. This is purely optional.\n").strip()
+                title = input(f"You may enter a title for your session with {char.name}. This is purely optional. Enter here: ").strip()
                 sesh = Session(character_id=char.id, title=title if title else None)
                 db.session.add(sesh)
                 db.session.commit()
@@ -157,5 +158,3 @@ def setup():
     except:
         print("Hi! I'm an error message! I'm here to piss you off and provide nothing of value to your debugging!")
         return
-    
-setup()
