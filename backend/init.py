@@ -39,12 +39,12 @@ def create_character(user):
     # name validation
     name = input("Name (Required): ").strip()
     while not name:
-        name = input("Your character's name is a required field. Please try again. Enter here: ")
+        name = input("Your character's name is a required field. Please try again. Enter here: ").strip()
 
     # personality validation
     personality = input("Personality (Required): ").strip()
     while not personality:
-        personality = input("Your character personality is a required field. Please try again. Enter here: ")
+        personality = input("Your character personality is a required field. Please try again. Enter here: ").strip()
     
     backstory = input("Backstory (Optional): ").strip()
     world_info = input("World Info (Optional): ").strip()
@@ -86,7 +86,15 @@ def setup():
                 else:
                     print("Your input was not recognized by the system. Please try again.")
 
-            name = input("Enter your username.\n").strip()
+            name = input("Enter your username. Your username must be between 5 and 15 characters.\n").strip()
+
+            while not name or len(name) < 5 or len(name) > 15:
+                if not name:
+                    name = input("Your username cannot be blank. Please enter a username: ").strip()
+
+                elif len(name) < 5 or len(name) > 15:
+                    name = input("Your username must be between 5 and 15 characters. Please pick a new username: ").strip()
+
             user = User.query.filter_by(username=name).first()
 
             # add the user to the db or verify their name
@@ -97,18 +105,27 @@ def setup():
                     db.session.commit()
 
                 else:
+                    attempts = 0
                     while True:
+
+                        if attempts == 3:
+                            print("There was an error processing your information. Have a nice day!")
+                            exit()
+
                         name = input("Your username was not recognized. Please try again!\n").strip()
                         user = User.query.filter_by(username=name).first()
                         if user:
                             print("Thank you!")
                             break
 
+                        else:
+                            attempts += 1
+
             print(f"\nWelcome to the RP Bot application, {user.username}! Thank you for testing!\n")
             print("This RP Bot works through the Anthropic Claude API. Please enter your API key to continue.")
-            print("NOTE: THIS INFO IS NOT SAVED TO THE DATABASE.")
+            print("NOTE: YOUR API KEY IS NOT SAVED TO THE DATABASE.")
 
-            key = input().strip()
+            key = input("Enter your API key here: ").strip()
             init_claude(key)
 
             # prior user handling
