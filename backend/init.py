@@ -109,7 +109,7 @@ def setup():
             print("NOTE: THIS INFO IS NOT SAVED TO THE DATABASE.")
 
             key = input().strip()
-            init_claude(api_key=key)
+            init_claude(key)
 
             # prior user handling
             if not first_time:

@@ -2,6 +2,8 @@ from db import db
 from models import User, Character, Message
 from anthropic import Anthropic
 
+claude = None
+
 def init_claude(key):
     global claude
     claude = Anthropic(api_key=key)
