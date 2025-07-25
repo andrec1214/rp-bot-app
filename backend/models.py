@@ -53,6 +53,7 @@ class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False) # message content
     sender = db.Column(db.String(128), nullable=False) # can have user or character, helps for summaries
+    char_name = db.Column(db.String(128), nullable=False) # chan names
     is_summary = db.Column(db.Boolean, default=False) # message IS a summary, distinction between below
     summarized = db.Column(db.Boolean, default=False) # message was summarized
     timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))

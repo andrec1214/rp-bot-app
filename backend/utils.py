@@ -47,6 +47,9 @@ CRUCIAL:
 Do not break character no matter what.
 Do not ever reference being an AI.
 Do not speak or do actions for the user.
+
+Your prose should be similar to that of someone writing something akin to a slice-of-life light novel. Be detailed, speak in third person, and push the story
+forward where necessary.
 """
 
 def get_recent_messages(session_id, limit=30):
