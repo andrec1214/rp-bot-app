@@ -1,98 +1,146 @@
 from app import app, db
-from models import User, Character, Session, Message
-from utils import prompt_claude, build_context_for_prompt, build_system_prompt
+from models import User, Character, Session
+from sqlalchemy.exc import IntegrityError
 
-def get_session(user):
-    print("Please select a character from the above.")
-    charname = input("Character: ").strip()
-    char = Character.query.filter_by(name=charname, user_id=user.id).first()
+# GET CHARACTER FUNCTION
+def get_character(user):
+    print("\nPlease select a character from above.\n")
 
     while True:
-        if not char:
-            print("Your entry does not match any of the previously listed, please try again.")
-            
+        charname = input()
+        character = Character.query.filter_by(name=charname, user_id=user.id).first()
+        if not character:
+            print("Your input did not match any of the listed options. Try again.")
+            charname = input().strip()
         else:
-            print(f"Selected Character: {char.name}")
-            break
-    
-    sessions = char.sessions
+            print(f"Selected Character: {character.name}")
+            return character
 
-    print(f"You have the following sessions with {char.name}")
-    for sesh in sessions:
+# GET SESSION FUNCTION   
+def get_session(char):
+    print(f"You have the following sessions with {char.name}:")
+    for sesh in char.sessions:
         print(sesh.title, sesh.created_at)
 
+    print("Please select a session.")
+    title = input().strip()
+    session = Session.query.filter_by(title=title, character_id=char.id).first()
+    while not session:
+        title = input("Your session input was not registered properly, please try again.").strip()
+        session = Session.query.filter_by(title=title, character_id=char.id).first()
 
-def create_character():
-    print("Enter the details for your new character!")
-    while True:
-        try:
-            # get the info
-            name = input("Name (Required): ").strip()
-            personality = input("Personality (Required): ").strip()
-            backstory = input("Backstory: ").strip()
-            world_info = input("World Info: ").strip()
-            goals = input("Goals: ").strip()
-            relationships = input("Relationships: ").strip() 
-            char = Character(name=name, 
-                            personality=personality, 
-                            backstory=backstory, 
-                            world_info=world_info,
-                            goals=goals,
-                            relationships=relationships)
-            db.session.add(char)
-            db.session.commit()
-            return char
+    return session
 
-        except IntegrityError as e:
-            db.session.rollback()
+# CREATE CHARACTER FUNCTION
+def create_character(user):
+    print("\nEnter the details for your new character!")
 
+    # name validation
+    name = input("Name (Required): ").strip()
+    while not name:
+        name = input("Your character's name is a required field. Please try again.\n")
 
-
-with app.app_context():
+    # personality validation
+    personality = input("Personality (Required): ").strip()
+    while not personality:
+        personality = input("Your character personality is a required field. Please try again.\n")
     
-    print("Is this your first time using this service? (y/n)")
-    first_time = False
+    backstory = input("Backstory (Optional): ").strip()
+    world_info = input("World Info (Optional): ").strip()
+    goals = input("Goals (Optional): ").strip()
+    relationships = input("Relationships (Optional): ").strip()
+    
+    try:
+        character = Character(name=name, 
+                            personality=personality,
+                            backstory=backstory if backstory else None,
+                            world_info=world_info if world_info else None,
+                            goals=goals if goals else None,
+                            relationships=relationships if relationships else None,
+                            user_id=user.id)
+            
+        db.session.add(character)
+        db.session.commit()
+        return character
+        
+    except IntegrityError as e:
+        db.session.rollback()
+        print("Database error.")
 
-    # user verification
-    while True:
-        ans = input().lower().strip()
-        if ans == "y" or ans == "n":
-            if ans == "y":
-                first_time = True
-            break
-        else:
-            print("Your input was not recognized by the system. Please try again.")
+# SETUP SEGMENT
+def setup():
+    with app.app_context():
+        
+        print("Is this your first time using this service? (y/n)\n")
+        first_time = False
 
-    name = input("Enter your username.").strip()
-    user = User.query.filter_by(username=name).first()
+        # user verification
+        while True:
+            ans = input().lower().strip()
+            if ans == "y" or ans == "n":
+                if ans == "y":
+                    first_time = True
+                break
+            else:
+                print("Your input was not recognized by the system. Please try again.")
 
-    # add the user to the db or verify their name
-    if not user:
-        if first_time:
-            user = User(username=name)
-            db.session.add(user)
-            db.session.commit()
+        name = input("Enter your username.\n").strip()
+        user = User.query.filter_by(username=name).first()
 
-        else:
+        # add the user to the db or verify their name
+        if not user:
+            if first_time:
+                user = User(username=name)
+                db.session.add(user)
+                db.session.commit()
+
+            else:
+                while True:
+                    name = input("Your username was not recognized. Please try again!\n").strip()
+                    user = User.query.filter_by(username=name).first()
+                    if user:
+                        print("Thank you!")
+                        break
+
+        print(f"\nWelcome to the RP Bot application, {user.username}! Thank you for testing!\n")
+
+        # prior user handling
+        if not first_time:
+            chars = [char.name for char in user.characters]
+            print("\nWould you like to open a session, or create a new character? (Enter 0 for session, 1 for new character)\n")
+
             while True:
-                name = input("Your username was not recognized. Please try again!").strip()
-                user = User.query.filter_by(username=name).first()
-                if user:
-                    print("Thank you!")
-                    break
+                try:
+                    ans = int(input().strip())
+                except:
+                    print("Invalid input, please try again.")
 
-    print(f"Welcome to the RP Bot application, {user.username}! Thank you for testing!")
-    print("\n")
+                if ans == 0:
+                    print("\nHere is a list of characters you have previously interacted with: ")
+                    print(" ".join(chars))
+                    char = get_character(user)
+                    sesh = get_session(char)
+                    return
 
-    if not first_time:
-        chars = [char.name for char in user.characters]
-        print("Here is a list of characters you have previously interacted with: ")
-        print(" ".join(chars))
-        print("\nWould you like to open a session, or input a new character? (Enter 0 for session, 1 for new character)")
-        ans = int(input())
+                elif ans == 1:
+                    char = create_character(user)
+                    title = input(f"You may enter a title for your session with {char.name}. This is purely optional.\n").strip()
+                    sesh = Session(character_id=char.id, title=title if title else None)
+                    db.session.add(sesh)
+                    db.session.commit()
+                    return
+                
+                else:
+                    print("Invalid input. Try again.")
 
-        if ans == 0:
-            get_session(user)
+        # first time user handling
+        else:
+            print("Let's create your first character!")
+            char = create_character(user)
+            title = input(f"You may enter a title for your session with {char.name}. This is purely optional.\n").strip()
+            sesh = Session(character_id=char.id, title=title if title else None)
+            db.session.add(sesh)
+            db.session.commit()
+            return
 
-        elif ans == 1:
-            char = create_character()
+setup()
