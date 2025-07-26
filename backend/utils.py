@@ -25,7 +25,7 @@ def prompt_claude(messages, system_prompt):
     return response.content[0].text.strip()
 
 # System prompt builder. Creates a user and character instance and builds a system prompt out of character info.
-def build_system_prompt(user_id, character_id):
+def build_system_prompt(user_id, character_id, user_prompt):
     user = db.session.get(User, user_id)
     character = db.session.get(Character, character_id)
 
@@ -35,13 +35,16 @@ def build_system_prompt(user_id, character_id):
     elif not character:
         print("Character not found.")
         return None
-
+    
     return f"""Name: {character.name}
 Personality: {character.personality}
 Backstory: {character.backstory}
 World Info: {character.world_info}
 Goals: {character.goals}
 Relationships: {character.relationships}
+
+Instructions: {user_prompt if user_prompt else f"You are a writer. You should interact with the user in 3rd person, making sure to narrate and speak for {character.name}.\
+                Make sure your descriptions are detailed. Focus more on the character interactions than external details."}
 
 CRUCIAL:
 Do not break character.
