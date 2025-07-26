@@ -4,10 +4,9 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-db_url = os.getenv("DATABASE_URL")
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL", "sqlite:///db.sqlite3")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)

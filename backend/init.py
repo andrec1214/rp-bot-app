@@ -14,16 +14,16 @@ def get_character(user):
             print("Your input did not match any of the listed options. Try again. Enter here: ")
             charname = input().strip()
         else:
-            print(f"Selected Character: {character.name}")
+            print(f"\nSelected Character: {character.name}")
             return character
 
 # GET SESSION FUNCTION   
 def get_session(char):
-    print(f"You have the following sessions with {char.name}:")
+    print(f"\nYou have the following sessions with {char.name}:")
     for sesh in char.sessions:
         print(sesh.title, sesh.created_at)
 
-    print("Please select a session.")
+    print("\nPlease select a session.")
     title = input().strip()
     session = Session.query.filter_by(title=title, character_id=char.id).first()
     while not session:
@@ -39,12 +39,12 @@ def create_character(user):
     # name validation
     name = input("Name (Required): ").strip()
     while not name:
-        name = input("Your character's name is a required field. Please try again. Enter here: ").strip()
+        name = input("\nYour character's name is a required field. Please try again. Enter here: ").strip()
 
     # personality validation
     personality = input("Personality (Required): ").strip()
     while not personality:
-        personality = input("Your character personality is a required field. Please try again. Enter here: ").strip()
+        personality = input("\nYour character personality is a required field. Please try again. Enter here: ").strip()
     
     backstory = input("Backstory (Optional): ").strip()
     world_info = input("World Info (Optional): ").strip()
@@ -66,7 +66,8 @@ def create_character(user):
         
     except IntegrityError as e:
         db.session.rollback()
-        print("Database error.")
+        print("Database error. Sorry for the inconvenience. Please run the program again.")
+        exit()
 
 # SETUP SEGMENT
 def setup():
@@ -84,9 +85,9 @@ def setup():
                         first_time = True
                     break
                 else:
-                    print("Your input was not recognized by the system. Please try again.")
+                    print("\nYour input was not recognized by the system. Please try again.")
 
-            name = input("Enter your username. Your username must be between 5 and 15 characters.\n").strip()
+            name = input("\nEnter your username. Your username must be between 5 and 15 characters.\n").strip()
 
             while not name or len(name) < 5 or len(name) > 15:
                 if not name:
@@ -117,7 +118,7 @@ def setup():
                         if user:
                             print("Thank you!")
                             break
-
+                        
                         else:
                             attempts += 1
 
@@ -131,7 +132,7 @@ def setup():
             # prior user handling
             if not first_time:
                 chars = [char.name for char in user.characters]
-                print("\nWould you like to open a session, or create a new character? (Enter 0 for session, 1 for new character)\n")
+                print("\nWould you like to open a session, or create a new character? (Enter 0 for session, 1 for new character): ")
 
                 while True:
                     try:
@@ -145,33 +146,33 @@ def setup():
                         print(" ".join(chars))
                         char = get_character(user)
                         sesh = get_session(char)
-                        return
+                        return user, char, sesh
 
                     elif ans == 1:
                         char = create_character(user)
-                        title = input(f"You may enter a title for your session with {char.name}. This is purely optional. Enter here: ").strip()
+                        title = input(f"\nYou may enter a title for your session with {char.name}. This is purely optional. Enter here: ").strip()
                         sesh = Session(character_id=char.id, title=title if title else None)
                         db.session.add(sesh)
                         db.session.commit()
-                        return
+                        return user, char, sesh
                     
                     else:
                         print("Invalid input. Try again.")
 
             # first time user handling
             else:
-                print("Let's create your first character!")
+                print("\nLet's create your first character!")
                 char = create_character(user)
-                title = input(f"You may enter a title for your session with {char.name}. This is purely optional. Enter here: ").strip()
+                title = input(f"\nYou may enter a title for your session with {char.name}. This is purely optional. Enter here: ").strip()
                 sesh = Session(character_id=char.id, title=title if title else None)
                 db.session.add(sesh)
                 db.session.commit()
-                return
+                return user, char, sesh
             
     except KeyboardInterrupt as e:
         print("\nHave a nice day!")
-        return
+        exit()
     
-    except:
-        print("Hi! I'm an error message! I'm here to piss you off and provide nothing of value to your debugging!")
-        return
+    except Exception:
+        print("Hi! I'm an error message! I'm here to piss you off and provide nothing of value to your debugging! (init.py)")
+        exit()
