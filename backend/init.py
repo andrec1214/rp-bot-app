@@ -84,24 +84,37 @@ def setup():
                     if ans == "y":
                         first_time = True
                     break
+
                 else:
                     print("\nYour input was not recognized by the system. Please try again.")
 
-            name = input("\nEnter your username. Your username must be between 5 and 15 characters.\n").strip()
+            name = None
+            if first_time:
+                name = input("\nPick a username! Keep in mind that it must be between 5 and 15 characters long. Enter: ").strip()
+                while not name or len(name) < 5 or len(name) > 15:
+                    if not name:
+                        name = input("\nYour username cannot be blank. Please enter a username: ").strip()
 
-            while not name or len(name) < 5 or len(name) > 15:
-                if not name:
-                    name = input("Your username cannot be blank. Please enter a username: ").strip()
+                    elif len(name) < 5 or len(name) > 15:
+                        name = input("\nYour username must be between 5 and 15 characters. Please pick a new username: ").strip()
 
-                elif len(name) < 5 or len(name) > 15:
-                    name = input("Your username must be between 5 and 15 characters. Please pick a new username: ").strip()
+            else:
+                name = input("\nEnter your username.\n").strip()
 
             user = User.query.filter_by(username=name).first()
 
             # add the user to the db or verify their name
             if not user:
                 if first_time:
+                    password = input("\nPlease select a password between 6 to 20 characters: ").strip()
+                    while not password or len(password) < 6 or len(password) > 20:
+                        if not password:
+                            password = input("\nYour password cannot be blank. Please try aagin: ")
+                        elif len(password) < 6 or len(password) > 20:
+                            password = input("\nYour password must be between 6 and 20 charactes. Please try again: ")
+
                     user = User(username=name)
+                    user.set_password(password)
                     db.session.add(user)
                     db.session.commit()
 
@@ -110,7 +123,7 @@ def setup():
                     while True:
 
                         if attempts == 3:
-                            print("There was an error processing your information. Have a nice day!")
+                            print("There was an error processing your username. Have a nice day!")
                             exit()
 
                         name = input("Your username was not recognized. Please try again!\n").strip()
@@ -118,15 +131,26 @@ def setup():
                         if user:
                             print("Thank you!")
                             break
-                        
+
                         else:
                             attempts += 1
+            
+            else:
+                password = input("\nPlease enter your password: ").strip()
+                attempts = 0
+                while not user.check_password(password):
+                    attempts += 1
+                    password = input(f"\nIncorrect password. Attempts remaining: {3 - attempts}. Try again: ").strip()
+
+                    if attempts == 3:
+                        print("\nUnable to process password. Have a nice day!")
+                        exit()
 
             print(f"\nWelcome to the RP Bot application, {user.username}! Thank you for testing!\n")
             print("This RP Bot works through the Anthropic Claude API. Please enter your API key to continue.")
             print("NOTE: YOUR API KEY IS NOT SAVED TO THE DATABASE.")
 
-            key = input("Enter your API key here: ").strip()
+            key = input("\nEnter your API key here: ").strip()
             init_claude(key)
 
             # prior user handling
@@ -174,5 +198,5 @@ def setup():
         exit()
     
     except Exception:
-        print("Hi! I'm an error message! I'm here to piss you off and provide nothing of value to your debugging! (init.py)")
+        print("There was an error in init.py. Please run the program again.")
         exit()
