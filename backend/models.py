@@ -50,8 +50,8 @@ class Session(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     character_id = db.Column(db.Integer, db.ForeignKey("characters.id"), nullable=False)
     
-    title = db.Column(db.String(256)) # optional title for a session, can implement into a session-specific save system later
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    title = db.Column(db.String(256), default=f"Unnamed Session @ {created_at}.") # changed to be required to make life easier
 
     messages = db.relationship("Message", backref="session", lazy=True)
 

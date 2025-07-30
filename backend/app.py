@@ -105,19 +105,21 @@ def characters():
         db.session.add(char)
         db.session.commit()
 
-        return jsonify({'message': f'{char_info.get('name')} was successfully created!', 'char_id': char.id})
+        return jsonify({'message': f'{char_info.get("name")} was successfully created!', 'char_id': char.id})
     
-@app.route('/api/characters/<int:character_id>', methods=['GET', 'POST', 'DELETE'])
+@app.route('/api/characters/<int:character_id>', methods=['GET', 'PATCH', 'DELETE'])
 def char_actions(character_id):
-    # GET will display char info to the screen, POST will make changes to the char,
+    # GET will display char info to the screen, PATCH will make changes to the char,
     # DELETE will delete (shocker).
     user_id = session.get("user_id")
     user = User.query.filter_by(id=user_id).first()
-
     if not user:
         return jsonify({'error': 'User not authenticated.'}), 401
     
     char = Character.query.filter_by(id=character_id, user_id=user_id).first()
+    if not char:
+        return jsonify({'error': 'Character not found.'}), 401
+    
     if request.method == 'GET':
         return jsonify({
             'name': char.name,
@@ -134,9 +136,9 @@ def char_actions(character_id):
         db.session.delete(char)
         db.session.commit()
 
-        return jsonify({'message': f'{char.name} was successfully deleted.'})
+        return jsonify({'message': f'{char.name} was successfully deleted.', 'char_id': char.id})
     
-    elif request.method == 'POST':
+    elif request.method == 'PATCH':
         data = request.get_json()
         char.name = data.get('name')
         char.personality = data.get('personality')
@@ -147,8 +149,21 @@ def char_actions(character_id):
 
         db.session.commit()
 
-        return jsonify({'message': f'{char.name} was successfully modified.'})
+        return jsonify({'message': f'{char.name} was successfully updated.', 'char_id': char.id})
     
 @app.route('/api/characters/<int:character_id>/sessions', methods=['POST', 'GET'])
 def sessions(character_id):
+    user_id = session.get('user_id')
+    user = User.query.filter_by(user_id=user_id).first()
+    if not user:
+        return jsonify({'error': 'User not authenticated.'}), 401
     
+    char = Character.query.filter_by(id=character_id, user_id=user_id).first()
+    if not char:
+        return jsonify({'error': 'Character not found.'}), 400
+    
+    if request.method == 'GET':
+        return jsonify()
+
+    if request.method == 'POST':
+        return jsonify()
