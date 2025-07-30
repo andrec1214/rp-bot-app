@@ -111,4 +111,44 @@ def characters():
 def char_actions(character_id):
     # GET will display char info to the screen, POST will make changes to the char,
     # DELETE will delete (shocker).
-    return
+    user_id = session.get("user_id")
+    user = User.query.filter_by(id=user_id).first()
+
+    if not user:
+        return jsonify({'error': 'User not authenticated.'}), 401
+    
+    char = Character.query.filter_by(id=character_id, user_id=user_id).first()
+    if request.method == 'GET':
+        return jsonify({
+            'name': char.name,
+            'personality': char.personality,
+            'backstory': char.backstory,
+            'world_info': char.world_info,
+            'goals': char.goals,
+            'relationships': char.relationships,
+            'user_id': user.id
+        })
+    
+    elif request.method == 'DELETE':
+
+        db.session.delete(char)
+        db.session.commit()
+
+        return jsonify({'message': f'{char.name} was successfully deleted.'})
+    
+    elif request.method == 'POST':
+        data = request.get_json()
+        char.name = data.get('name')
+        char.personality = data.get('personality')
+        char.backstory = data.get('backstory')
+        char.world_info = data.get('world_info')
+        char.goals = data.get('goals')
+        char.relationships = data.get('relationships')
+
+        db.session.commit()
+
+        return jsonify({'message': f'{char.name} was successfully modified.'})
+    
+@app.route('/api/characters/<int:character_id>/sessions', methods=['POST', 'GET'])
+def sessions(character_id):
+    
