@@ -6,8 +6,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL", "sqlite:///db.sqlite3")
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DB_URL", "sqlite:///db.sqlite3")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+app.secret_key = os.getenv("SECRET_KEY")
 
 db.init_app(app)
 
@@ -34,7 +36,7 @@ def register():
 
     # no duplicate usernames
     if User.query.filter_by(username=username).first():
-        return jsonify({"error": "This usernam is taken."}), 400
+        return jsonify({"error": "This username is taken."}), 400
     
     user = User(username=username)
     user.set_password(password)
@@ -70,14 +72,14 @@ def characters():
     if not user_id:
         return jsonify({'error': 'User not authenticated.'}), 401
     
-    characters = Character.query.filter_by(user_id=user_id)
+    characters = Character.query.filter_by(user_id=user_id).all()
 
     if request.method == 'GET':
         if not characters:
             return jsonify({'message': 'You do not have any characters.'})
         
         return jsonify([{
-            'username': char.name,
+            'name': char.name,
             'personality': char.personality,
             'backstory': char.backstory,
             'world_info': char.world_info,
@@ -97,15 +99,16 @@ def characters():
             world_info=char_info.get('world_info'),
             goals=char_info.get('goals'),
             relationships=char_info.get('relationships'),
+            user_id=session.get('user_id')
         )
 
         db.session.add(char)
         db.session.commit()
 
-        return jsonify({'message': f"{char_info.get('name')} was successfully created!"})
+        return jsonify({'message': f'{char_info.get('name')} was successfully created!', 'char_id': char.id})
     
 @app.route('/api/characters/<int:character_id>', methods=['GET', 'POST', 'DELETE'])
-def char_actions():
+def char_actions(character_id):
     # GET will display char info to the screen, POST will make changes to the char,
     # DELETE will delete (shocker).
     return
